@@ -1,0 +1,17 @@
+apiVersion: harness.io/v1
+kind: Component
+identifier: jarvis_onboarding_promotion_step1
+name: Onboarding - Promotion Step 1
+type: service
+owner: platform_engineering
+metadata:
+  orgIdentifier: default
+  projectIdentifier: cfg-IDP-project
+  description: >
+    JARVIS self-service onboarding promotion workflow. Captures cloud type,
+    deployment division, region, DMND ticket, environment, qualys scan status,
+    and Bifrost categorisation before promoting an application.
+  tags:
+    - jarvis
+    - onboarding
+    - promotion

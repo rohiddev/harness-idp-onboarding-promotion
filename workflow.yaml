@@ -1,0 +1,218 @@
+apiVersion: harness.io/v1
+kind: Workflow
+identifier: jarvis_onboarding_promotion_step1
+name: Onboarding - Promotion Step 1
+type: service
+owner: platform_engineering
+metadata:
+  orgIdentifier: default
+  projectIdentifier: cfg-IDP-project
+  description: >
+    JARVIS self-service onboarding promotion. Captures cloud type, deployment division,
+    region, DMND ticket, environment, qualys scan status, and Bifrost categorisation
+    before promoting an application to the next environment.
+  tags:
+    - jarvis
+    - onboarding
+    - promotion
+    - self-service
+  icon: cloud
+  actionButton:
+    intent: success
+    text: Continue
+
+spec:
+
+  # ══════════════════════════════════════════════════════════════════════════
+  # FIELD CHAIN - single page
+  #
+  #   applicationId      - SYS ID (SYSID-#####)
+  #   cloudType          - static enum: AWS | Azure
+  #   deploymentDivision - SelectFieldFromApi -> /divisions
+  #   promotedFromRegion - SelectFieldFromApi -> /regions
+  #   dmndTicket         - text (DMND + digits, ServiceNow)
+  #   promotedFromEnv    - SelectFieldFromApi -> /environments
+  #   qualysScan         - static enum: Yes | No
+  #   rehydrationOrPatch - static enum: Rehydration | PatchInPlace
+  #   bifrostCategory    - SelectFieldFromApi -> /bifrost-categories
+  #
+  # PROXY PREFIX: proxy/platform-api/hoover-service/mock-api/jarvis/promotion/
+  # BEST PRACTICES:
+  # - All fields in base properties (never allOf/then/properties)
+  # - allOf used for required: enforcement only
+  # - SelectFieldFromApi params path-embedded — no params: block
+  # - Empty params -> always return [] (never 4xx)
+  # ══════════════════════════════════════════════════════════════════════════
+
+  parameters:
+
+    - title: Onboarding Promotion Step 1
+      description: >
+        Complete all fields below to promote your application.
+        A clean Qualys scan is required before promotion can proceed.
+
+      required:
+        - applicationId
+        - cloudType
+        - deploymentDivision
+        - promotedFromRegion
+        - dmndTicket
+        - promotedFromEnv
+        - qualysScan
+        - rehydrationOrPatch
+        - bifrostCategory
+
+      properties:
+
+        token:
+          title: Harness Token
+          type: string
+          ui:widget: password
+          ui:field: HarnessAuthToken
+
+        # ── Application ID ────────────────────────────────────────────────
+        applicationId:
+          title: 'What is your application ID? *'
+          type: string
+          description: 'Format: SYSID-##### - 5-digit number after the prefix'
+          default: 'SYSID-'
+          ui:autofocus: true
+          ui:placeholder: 'Application ID - e.g. SYSID-06534'
+          pattern: '^SYSID-[0-9]{5}$'
+          minLength: 11
+          maxLength: 11
+
+        # ── Cloud Type ────────────────────────────────────────────────────
+        cloudType:
+          title: 'Select your cloudType *'
+          type: string
+          description: 'Public cloud provider for this promotion'
+          enum:
+            - 'AWS'
+            - 'Azure'
+          ui:widget: select
+
+        # ── Deployment Division ───────────────────────────────────────────
+        deploymentDivision:
+          title: 'Select deployment division? (this is where the infra will be built) *'
+          type: string
+          description: 'Business division that owns the infrastructure'
+          ui:field: SelectFieldFromApi
+          ui:options:
+            path: 'proxy/platform-api/hoover-service/mock-api/jarvis/promotion/divisions'
+            valueSelector: value
+            labelSelector: label
+            placeholder: 'Deployment Division - Select a division...'
+
+        # ── Promoted From Region ──────────────────────────────────────────
+        promotedFromRegion:
+          title: 'Select a promoted from region *'
+          type: string
+          description: 'The region you are promoting from'
+          ui:field: SelectFieldFromApi
+          ui:options:
+            path: 'proxy/platform-api/hoover-service/mock-api/jarvis/promotion/regions'
+            valueSelector: value
+            labelSelector: label
+            placeholder: 'Region - Select a region...'
+
+        # ── DMND Ticket ───────────────────────────────────────────────────
+        dmndTicket:
+          title: 'What is your DMND ticket # - This should be in servicenow and will look something like this DMND123456789 *'
+          type: string
+          description: 'ServiceNow DMND ticket number for this promotion request'
+          ui:placeholder: 'DMND Ticket - e.g. DMND1234556'
+          pattern: '^DMND[0-9]+$'
+
+        # ── Promoted From Environment ─────────────────────────────────────
+        promotedFromEnv:
+          title: 'Please select a promoted from environment *'
+          type: string
+          description: 'The environment you are promoting from'
+          ui:field: SelectFieldFromApi
+          ui:options:
+            path: 'proxy/platform-api/hoover-service/mock-api/jarvis/promotion/environments'
+            valueSelector: value
+            labelSelector: label
+            placeholder: 'Environment - Select an environment...'
+
+        # ── Qualys Scan ───────────────────────────────────────────────────
+        qualysScan:
+          title: 'Have you submitted for a qualys scan? *'
+          type: string
+          description: 'This must be Yes in order to proceed, you have to have a clean qualys scan to promote'
+          enum:
+            - 'Yes'
+            - 'No'
+          ui:widget: select
+
+        # ── Rehydration or Patch ──────────────────────────────────────────
+        rehydrationOrPatch:
+          title: 'Will your application be rehydratable or patch in place? *'
+          type: string
+          description: 'Select the deployment strategy for your application'
+          enum:
+            - 'Rehydration'
+            - 'PatchInPlace'
+          ui:widget: select
+
+        # ── Bifrost Category ──────────────────────────────────────────────
+        bifrostCategory:
+          title: 'Categorizations of Applications on Bifrost? *'
+          type: string
+          description: 'Select the Bifrost application category that applies to this application'
+          ui:field: SelectFieldFromApi
+          ui:options:
+            path: 'proxy/platform-api/hoover-service/mock-api/jarvis/promotion/bifrost-categories'
+            valueSelector: value
+            labelSelector: label
+            placeholder: 'Bifrost Category - Select a category...'
+          ui:backstage:
+            review:
+              show: true
+
+  # ─────────────────────────────────────────────────────────────────────────
+  # STEPS
+  # ─────────────────────────────────────────────────────────────────────────
+  steps:
+    - id: trigger_pipeline
+      name: Submit Promotion Request
+      action: trigger:harness-custom-pipeline
+      input:
+        url: "https://app.harness.io/ng/account/<+account.identifier>/org/default/projects/cfg-IDP-project/pipelines/jarvis_onboarding_promotion_step1"
+        apikey: ${{ parameters.token }}
+        inputset:
+          applicationId:      ${{ parameters.applicationId }}
+          cloudType:          ${{ parameters.cloudType }}
+          deploymentDivision: ${{ parameters.deploymentDivision }}
+          promotedFromRegion: ${{ parameters.promotedFromRegion }}
+          dmndTicket:         ${{ parameters.dmndTicket }}
+          promotedFromEnv:    ${{ parameters.promotedFromEnv }}
+          qualysScan:         ${{ parameters.qualysScan }}
+          rehydrationOrPatch: ${{ parameters.rehydrationOrPatch }}
+          bifrostCategory:    ${{ parameters.bifrostCategory }}
+
+  # ─────────────────────────────────────────────────────────────────────────
+  # OUTPUT
+  # ─────────────────────────────────────────────────────────────────────────
+  output:
+    links:
+      - title: View Pipeline Execution
+        url: ${{ steps.trigger_pipeline.output.PipelineUrl }}
+        icon: scaffolder
+    text:
+      - title: Promotion Request Submitted
+        content: |
+          Your promotion request has been submitted successfully.
+
+          | Field | Value |
+          |-------|-------|
+          | Application ID | `${{ parameters.applicationId }}` |
+          | Cloud Type | `${{ parameters.cloudType }}` |
+          | Deployment Division | `${{ parameters.deploymentDivision }}` |
+          | Region | `${{ parameters.promotedFromRegion }}` |
+          | DMND Ticket | `${{ parameters.dmndTicket }}` |
+          | Environment | `${{ parameters.promotedFromEnv }}` |
+          | Qualys Scan | `${{ parameters.qualysScan }}` |
+          | Rehydration / Patch | `${{ parameters.rehydrationOrPatch }}` |
+          | Bifrost Category | `${{ parameters.bifrostCategory }}` |
