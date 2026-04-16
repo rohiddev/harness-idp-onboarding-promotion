@@ -24,14 +24,26 @@ type MockPromotionController struct {
 func NewMockPromotionController() *MockPromotionController {
 	return &MockPromotionController{
 		divisions: []Option{
-			{Value: "Cps",      Label: "Cps"},
-			{Value: "Sec",      Label: "Sec"},
-			{Value: "Standard", Label: "Standard"},
+			{Value: "Colleaguetech",     Label: "Colleaguetech"},
+			{Value: "Commercial",        Label: "Commercial"},
+			{Value: "CommercialConnect", Label: "CommercialConnect"},
+			{Value: "Consumer",          Label: "Consumer"},
+			{Value: "ConsumerConnect",   Label: "ConsumerConnect"},
+			{Value: "Digital",           Label: "Digital"},
+			{Value: "Edo",               Label: "Edo"},
+			{Value: "Entsvc",            Label: "Entsvc"},
+			{Value: "Exvendor",          Label: "Exvendor"},
 		},
 
-		// Regions — expand when more are confirmed from JARVIS
 		regions: []Option{
-			{Value: "eus2", Label: "eus2"},
+			{Value: "us-east-1",    Label: "us-east-1 (N. Virginia)"},
+			{Value: "us-east-2",    Label: "us-east-2 (Ohio)"},
+			{Value: "us-west-2",    Label: "us-west-2 (Oregon)"},
+			{Value: "eu-west-1",    Label: "eu-west-1 (Ireland)"},
+			{Value: "eu-central-1", Label: "eu-central-1 (Frankfurt)"},
+			{Value: "eastus",       Label: "eastus (Azure East US)"},
+			{Value: "eastus2",      Label: "eastus2 (Azure East US 2)"},
+			{Value: "westeurope",   Label: "westeurope (Azure West Europe)"},
 		},
 
 		environments: []Option{
@@ -40,9 +52,9 @@ func NewMockPromotionController() *MockPromotionController {
 		},
 
 		bifrostCategories: []Option{
-			{Value: "Bifrost - Application Software Manual install",          Label: "Bifrost - Application Software Manual install"},
-			{Value: "Bifrost - Application Software Partially Automated",     Label: "Bifrost - Application Software Partially Automated"},
-			{Value: "Bifrost - Application Software install Full utilization", Label: "Bifrost - Application Software install Full utilization"},
+			{Value: "Bifrost - Application Software Manual Install",           Label: "Bifrost - Application Software Manual Install"},
+			{Value: "Bifrost - Application Software Partially Automated",      Label: "Bifrost - Application Software Partially Automated"},
+			{Value: "Bifrost - Application Software Install Full Utilization", Label: "Bifrost - Application Software Install Full Utilization"},
 			{Value: "Not Required", Label: "Not Required"},
 		},
 	}
