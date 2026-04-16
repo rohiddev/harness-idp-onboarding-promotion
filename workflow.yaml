@@ -5,8 +5,8 @@ name: Onboarding - Promotion Step 1
 type: service
 owner: platform_engineering
 metadata:
-  orgIdentifier: default
-  projectIdentifier: cfg-IDP-project
+  orgIdentifier: cfg_sandbox_dev
+  projectIdentifier: cfgIDPproject
   description: >
     JARVIS self-service onboarding promotion. Captures cloud type, deployment division,
     region, DMND ticket, environment, qualys scan status, and Bifrost categorisation
@@ -122,7 +122,7 @@ spec:
           type: string
           description: 'ServiceNow DMND ticket number for this promotion request'
           ui:placeholder: 'DMND Ticket - e.g. DMND1234556'
-          pattern: '^DMND[0-9]+$'
+          pattern: '^DMND[0-9A-Z]+$'
 
         # ── Promoted From Environment ─────────────────────────────────────
         promotedFromEnv:
@@ -167,9 +167,6 @@ spec:
             valueSelector: value
             labelSelector: label
             placeholder: 'Bifrost Category - Select a category...'
-          ui:backstage:
-            review:
-              show: true
 
   # ─────────────────────────────────────────────────────────────────────────
   # STEPS
@@ -179,9 +176,10 @@ spec:
       name: Submit Promotion Request
       action: trigger:harness-custom-pipeline
       input:
-        url: "https://app.harness.io/ng/account/<+account.identifier>/org/default/projects/cfg-IDP-project/pipelines/jarvis_onboarding_promotion_step1"
-        apikey: ${{ parameters.token }}
-        inputset:
+        pipelineId: jarvis_onboarding_promotion_step1
+        orgIdentifier: cfg_sandbox_dev
+        projectIdentifier: cfgIDPproject
+        inputValues:
           applicationId:      ${{ parameters.applicationId }}
           cloudType:          ${{ parameters.cloudType }}
           deploymentDivision: ${{ parameters.deploymentDivision }}
