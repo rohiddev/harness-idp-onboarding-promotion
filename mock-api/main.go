@@ -113,6 +113,10 @@ func (m *MockPromotionController) Register(rg *gin.RouterGroup) {
 	g.GET("/sample-webtiers",              m.GetSampleWebTiers)
 }
 
+func (m *MockPromotionController) MockPromotionRoutes(rg *gin.RouterGroup) {
+	m.Register(rg)
+}
+
 func (m *MockPromotionController) Health(c *gin.Context) {
 	c.JSON(200, gin.H{"status": "ok", "service": "jarvis-promotion-mock-api"})
 }
