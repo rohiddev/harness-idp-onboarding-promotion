@@ -5,8 +5,8 @@ name: Onboarding - Promotion Step 1
 type: service
 owner: platform_engineering
 metadata:
-  orgIdentifier: cfg_sandbox_dev
-  projectIdentifier: cfgIDPproject
+  orgIdentifier: idp_sandbox_dev
+  projectIdentifier: idp_project
   description: >
     JARVIS self-service onboarding promotion. Promotes an application from one
     environment to the next. Captures cloud type, division, region, DMND ticket,
@@ -554,7 +554,7 @@ spec:
       name: Submit Promotion Request
       action: trigger:harness-custom-pipeline
       input:
-        url: https://app.harness.io/ng/account/ACCOUNT_ID/module/idp/orgs/cfg_sandbox_dev/projects/cfgIDPproject/pipelines/jarvis_onboarding_promotion_step1
+        url: https://app.harness.io/ng/account/ACCOUNT_ID/module/idp/orgs/idp_sandbox_dev/projects/idp_project/pipelines/jarvis_onboarding_promotion_step1
         inputset:
           applicationId:          ${{ parameters.applicationId }}
           cloudType:              ${{ parameters.cloudType }}
