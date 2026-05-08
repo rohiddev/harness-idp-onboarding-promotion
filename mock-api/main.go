@@ -102,15 +102,15 @@ type TierItem struct {
 // Register registers all routes under the provided router group.
 func (m *MockPromotionController) Register(rg *gin.RouterGroup) {
 	g := rg.Group("/mock-api/jarvis/promotion")
-	g.GET("/health",                  m.Health)
-	g.GET("/divisions",               m.GetDivisions)
-	g.GET("/regions",                 m.GetRegions)
-	g.GET("/environments",            m.GetEnvironments)
-	g.GET("/promote-to-environments", m.GetPromoteToEnvironments)
-	g.GET("/bifrost-categories",      m.GetBifrostCategories)
-	g.GET("/vpc-options",             m.GetVpcOptions)
-	g.GET("/sample-apptiers",         m.GetSampleAppTiers)
-	g.GET("/sample-webtiers",         m.GetSampleWebTiers)
+	g.GET("/health",                       m.Health)
+	g.GET("/:cloudType/divisions",         m.GetDivisions)
+	g.GET("/regions",                      m.GetRegions)
+	g.GET("/environments",                 m.GetEnvironments)
+	g.GET("/promote-to-environments",      m.GetPromoteToEnvironments)
+	g.GET("/bifrost-categories",           m.GetBifrostCategories)
+	g.GET("/vpc-options",                  m.GetVpcOptions)
+	g.GET("/sample-apptiers",              m.GetSampleAppTiers)
+	g.GET("/sample-webtiers",              m.GetSampleWebTiers)
 }
 
 func (m *MockPromotionController) Health(c *gin.Context) {
