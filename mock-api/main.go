@@ -29,50 +29,60 @@ func cors() gin.HandlerFunc {
 // ─── Onboarding Promotion Step 1 ─────────────────────────────────────────────
 // Routes: /hoover-service/mock-api/jarvis/promotion/*
 
-var divisions = []Option{
-	{Value: "Colleaguetech",     Label: "Colleaguetech"},
-	{Value: "Commercial",        Label: "Commercial"},
-	{Value: "CommercialConnect", Label: "CommercialConnect"},
-	{Value: "Consumer",          Label: "Consumer"},
-	{Value: "ConsumerConnect",   Label: "ConsumerConnect"},
-	{Value: "Digital",           Label: "Digital"},
-	{Value: "Edo",               Label: "Edo"},
-	{Value: "Entsvc",            Label: "Entsvc"},
-	{Value: "Exvendor",          Label: "Exvendor"},
+// MockPromotionController handles all Mock API endpoints for onboarding promotion.
+type MockPromotionController struct {
+	divisions             []Option
+	regions               []Option
+	environments          []Option
+	promoteToEnvironments []Option
+	bifrostCategories     []Option
+	vpcOptions            []Option
 }
 
-var regions = []Option{
-	{Value: "us-east-1",    Label: "us-east-1 (N. Virginia)"},
-	{Value: "us-east-2",    Label: "us-east-2 (Ohio)"},
-	{Value: "us-west-2",    Label: "us-west-2 (Oregon)"},
-	{Value: "eu-west-1",    Label: "eu-west-1 (Ireland)"},
-	{Value: "eu-central-1", Label: "eu-central-1 (Frankfurt)"},
-	{Value: "eastus",       Label: "eastus (Azure East US)"},
-	{Value: "eastus2",      Label: "eastus2 (Azure East US 2)"},
-	{Value: "westeurope",   Label: "westeurope (Azure West Europe)"},
-}
-
-var environments = []Option{
-	{Value: "dev", Label: "dev"},
-	{Value: "qa",  Label: "qa"},
-}
-
-var promoteToEnvironments = []Option{
-	{Value: "qa",   Label: "qa"},
-	{Value: "prod", Label: "prod"},
-}
-
-var bifrostCategories = []Option{
-	{Value: "Bifrost - Application Software Manual Install",           Label: "Bifrost - Application Software Manual Install"},
-	{Value: "Bifrost - Application Software Partially Automated",      Label: "Bifrost - Application Software Partially Automated"},
-	{Value: "Bifrost - Application Software Install Full Utilization", Label: "Bifrost - Application Software Install Full Utilization"},
-	{Value: "Not Required", Label: "Not Required"},
-}
-
-var vpcOptions = []Option{
-	{Value: "default",      Label: "default"},
-	{Value: "custom-vpc-1", Label: "custom-vpc-1"},
-	{Value: "custom-vpc-2", Label: "custom-vpc-2"},
+// NewMockPromotionController creates a new controller with mock data.
+func NewMockPromotionController() *MockPromotionController {
+	return &MockPromotionController{
+		divisions: []Option{
+			{Value: "Colleaguetech",     Label: "Colleaguetech"},
+			{Value: "Commercial",        Label: "Commercial"},
+			{Value: "CommercialConnect", Label: "CommercialConnect"},
+			{Value: "Consumer",          Label: "Consumer"},
+			{Value: "ConsumerConnect",   Label: "ConsumerConnect"},
+			{Value: "Digital",           Label: "Digital"},
+			{Value: "Edo",               Label: "Edo"},
+			{Value: "Entsvc",            Label: "Entsvc"},
+			{Value: "Exvendor",          Label: "Exvendor"},
+		},
+		regions: []Option{
+			{Value: "us-east-1",    Label: "us-east-1 (N. Virginia)"},
+			{Value: "us-east-2",    Label: "us-east-2 (Ohio)"},
+			{Value: "us-west-2",    Label: "us-west-2 (Oregon)"},
+			{Value: "eu-west-1",    Label: "eu-west-1 (Ireland)"},
+			{Value: "eu-central-1", Label: "eu-central-1 (Frankfurt)"},
+			{Value: "eastus",       Label: "eastus (Azure East US)"},
+			{Value: "eastus2",      Label: "eastus2 (Azure East US 2)"},
+			{Value: "westeurope",   Label: "westeurope (Azure West Europe)"},
+		},
+		environments: []Option{
+			{Value: "dev", Label: "dev"},
+			{Value: "qa",  Label: "qa"},
+		},
+		promoteToEnvironments: []Option{
+			{Value: "qa",   Label: "qa"},
+			{Value: "prod", Label: "prod"},
+		},
+		bifrostCategories: []Option{
+			{Value: "Bifrost - Application Software Manual Install",           Label: "Bifrost - Application Software Manual Install"},
+			{Value: "Bifrost - Application Software Partially Automated",      Label: "Bifrost - Application Software Partially Automated"},
+			{Value: "Bifrost - Application Software Install Full Utilization", Label: "Bifrost - Application Software Install Full Utilization"},
+			{Value: "Not Required", Label: "Not Required"},
+		},
+		vpcOptions: []Option{
+			{Value: "default",      Label: "default"},
+			{Value: "custom-vpc-1", Label: "custom-vpc-1"},
+			{Value: "custom-vpc-2", Label: "custom-vpc-2"},
+		},
+	}
 }
 
 // TierItem is a single row in the app/web tier tables.
@@ -97,7 +107,53 @@ type TierItem struct {
 	IsElasticacheRedis  bool   `json:"isElasticacheRedis"`
 }
 
-func getPromotionSampleAppTiers(c *gin.Context) {
+// Register registers all promotion routes under the provided router group.
+func (m *MockPromotionController) Register(rg *gin.RouterGroup) {
+	g := rg.Group("/mock-api/jarvis/promotion")
+	g.GET("/health",                  m.Health)
+	g.GET("/:cloudType/divisions",    m.GetDivisions)
+	g.GET("/regions",                 m.GetRegions)
+	g.GET("/environments",            m.GetEnvironments)
+	g.GET("/promote-to-environments", m.GetPromoteToEnvironments)
+	g.GET("/bifrost-categories",      m.GetBifrostCategories)
+	g.GET("/vpc-options",             m.GetVpcOptions)
+	g.GET("/sample-apptiers",         m.GetSampleAppTiers)
+	g.GET("/sample-webtiers",         m.GetSampleWebTiers)
+}
+
+func (m *MockPromotionController) MockPromotionRoutes(rg *gin.RouterGroup) {
+	m.Register(rg)
+}
+
+func (m *MockPromotionController) Health(c *gin.Context) {
+	c.JSON(200, gin.H{"status": "ok", "service": "jarvis-promotion-mock-api"})
+}
+
+func (m *MockPromotionController) GetDivisions(c *gin.Context) {
+	c.JSON(200, m.divisions)
+}
+
+func (m *MockPromotionController) GetRegions(c *gin.Context) {
+	c.JSON(200, m.regions)
+}
+
+func (m *MockPromotionController) GetEnvironments(c *gin.Context) {
+	c.JSON(200, m.environments)
+}
+
+func (m *MockPromotionController) GetPromoteToEnvironments(c *gin.Context) {
+	c.JSON(200, m.promoteToEnvironments)
+}
+
+func (m *MockPromotionController) GetBifrostCategories(c *gin.Context) {
+	c.JSON(200, m.bifrostCategories)
+}
+
+func (m *MockPromotionController) GetVpcOptions(c *gin.Context) {
+	c.JSON(200, m.vpcOptions)
+}
+
+func (m *MockPromotionController) GetSampleAppTiers(c *gin.Context) {
 	lbs   := []string{"ALB", "ALB", "NLB", "ALB", "None", "None", "ALB", "ALB", "NLB", "ALB", "None", "ALB", "ALB", "NLB", "None", "ALB", "ALB", "NLB"}
 	oses  := []string{"Linux", "Linux", "Linux", "Windows", "Linux", "Linux", "Linux", "Linux", "Windows", "Linux", "Linux", "Linux", "Linux", "Windows", "Linux", "Linux", "Linux", "Windows"}
 	sizes := []string{"Medium", "Large", "Medium", "Large", "Medium", "Small", "Medium", "Medium", "Large", "Medium", "Small", "Medium", "Large", "Medium", "Small", "Medium", "Large", "Medium"}
@@ -127,26 +183,13 @@ func getPromotionSampleAppTiers(c *gin.Context) {
 	c.JSON(200, tiers)
 }
 
-func getPromotionSampleWebTiers(c *gin.Context) {
+func (m *MockPromotionController) GetSampleWebTiers(c *gin.Context) {
 	tiers := []TierItem{
-		{RepositoryName: "web-tier-repo-1", OS: "Linux",   BitbucketProjectKey: "QNA", IsBifrost: true, InstanceSize: "Medium", NumOfInstances: "2", VolumeType: "gp3", VolumeSize: "40", IsAutoScaling: true,  IsPublicFacing: true,  Loadbalancer: "ALB"},
-		{RepositoryName: "web-tier-repo-2", OS: "Linux",   BitbucketProjectKey: "QNA", IsBifrost: true, InstanceSize: "Large",  NumOfInstances: "3", VolumeType: "gp3", VolumeSize: "60", IsAutoScaling: true,  IsPublicFacing: true,  Loadbalancer: "NLB"},
-		{RepositoryName: "web-tier-repo-3", OS: "Windows", BitbucketProjectKey: "QNA", IsBifrost: true, InstanceSize: "Small",  NumOfInstances: "1", VolumeType: "gp3", VolumeSize: "40", IsStaticIp:   true,  IsPublicFacing: false, Loadbalancer: "None"},
+		{RepositoryName: "web-tier-repo-1", OS: "Linux",   BitbucketProjectKey: "QNA", IsBifrost: true, InstanceSize: "Medium", NumOfInstances: "2", VolumeType: "gp3", VolumeSize: "40", IsAutoScaling: true, IsPublicFacing: true,  Loadbalancer: "ALB"},
+		{RepositoryName: "web-tier-repo-2", OS: "Linux",   BitbucketProjectKey: "QNA", IsBifrost: true, InstanceSize: "Large",  NumOfInstances: "3", VolumeType: "gp3", VolumeSize: "60", IsAutoScaling: true, IsPublicFacing: true,  Loadbalancer: "NLB"},
+		{RepositoryName: "web-tier-repo-3", OS: "Windows", BitbucketProjectKey: "QNA", IsBifrost: true, InstanceSize: "Small",  NumOfInstances: "1", VolumeType: "gp3", VolumeSize: "40", IsStaticIp:   true, IsPublicFacing: false, Loadbalancer: "None"},
 	}
 	c.JSON(200, tiers)
-}
-
-func registerPromotionRoutes(rg *gin.RouterGroup) {
-	g := rg.Group("/jarvis/promotion")
-	g.GET("/health",                  func(c *gin.Context) { c.JSON(200, gin.H{"status": "ok", "service": "jarvis-promotion"}) })
-	g.GET("/:cloudType/divisions",    func(c *gin.Context) { c.JSON(200, divisions) })
-	g.GET("/regions",                 func(c *gin.Context) { c.JSON(200, regions) })
-	g.GET("/environments",            func(c *gin.Context) { c.JSON(200, environments) })
-	g.GET("/promote-to-environments", func(c *gin.Context) { c.JSON(200, promoteToEnvironments) })
-	g.GET("/bifrost-categories",      func(c *gin.Context) { c.JSON(200, bifrostCategories) })
-	g.GET("/vpc-options",             func(c *gin.Context) { c.JSON(200, vpcOptions) })
-	g.GET("/sample-apptiers",         getPromotionSampleAppTiers)
-	g.GET("/sample-webtiers",         getPromotionSampleWebTiers)
 }
 
 // ─── Onboarding Day 2 Step 1 ─────────────────────────────────────────────────
@@ -183,7 +226,7 @@ var day2Environments = []Option{
 }
 
 func registerDay2Step1Routes(rg *gin.RouterGroup) {
-	g := rg.Group("/jarvis/day2/step1")
+	g := rg.Group("/mock-api/jarvis/day2/step1")
 	g.GET("/health",       func(c *gin.Context) { c.JSON(200, gin.H{"status": "ok", "service": "jarvis-day2-step1"}) })
 	g.GET("/divisions",    func(c *gin.Context) { c.JSON(200, day2Divisions) })
 	g.GET("/regions",      func(c *gin.Context) { c.JSON(200, day2Regions) })
@@ -207,7 +250,7 @@ var innovationLabPocTypes = []Option{
 }
 
 func registerInnovationLabRoutes(rg *gin.RouterGroup) {
-	g := rg.Group("/jarvis/innovation-lab")
+	g := rg.Group("/mock-api/jarvis/innovation-lab")
 	g.GET("/health",    func(c *gin.Context) { c.JSON(200, gin.H{"status": "ok", "service": "jarvis-innovation-lab"}) })
 	g.GET("/poc-types", func(c *gin.Context) { c.JSON(200, innovationLabPocTypes) })
 }
@@ -219,13 +262,10 @@ func main() {
 	r := gin.New()
 	r.Use(gin.Logger(), gin.Recovery(), cors())
 
-	// All routes under /hoover-service/mock-api to match Harness IDP proxy pathRewrite:
-	//   proxy/platform-api/hoover-service/mock-api/* -> /hoover-service/mock-api/*
-	base := r.Group("/hoover-service/mock-api")
-
-	registerPromotionRoutes(base)
-	registerDay2Step1Routes(base)
-	registerInnovationLabRoutes(base)
+	hooverGroup := r.Group("/hoover-service")
+	NewMockPromotionController().Register(hooverGroup)
+	registerDay2Step1Routes(hooverGroup)
+	registerInnovationLabRoutes(hooverGroup)
 
 	r.GET("/health", func(c *gin.Context) { c.JSON(200, gin.H{"status": "ok"}) })
 
