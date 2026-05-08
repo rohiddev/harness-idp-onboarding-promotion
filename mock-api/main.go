@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 
 	"github.com/gin-gonic/gin"
@@ -76,6 +77,28 @@ func NewMockPromotionController() *MockPromotionController {
 	}
 }
 
+// TierItem is the shape of a single web or app tier row.
+type TierItem struct {
+	RepositoryName      string `json:"repositoryName"`
+	OS                  string `json:"os"`
+	BitbucketProjectKey string `json:"bitbucketProjectKey"`
+	IsNotForPromotion   bool   `json:"isNotForPromotion"`
+	IsBifrost           bool   `json:"isBifrost"`
+	IsServerlessPattern bool   `json:"isServerlessPattern"`
+	IsS3Only            bool   `json:"isS3Only"`
+	IsPublicFacing      bool   `json:"isPublicFacing"`
+	InstanceSize        string `json:"instanceSize"`
+	NumOfInstances      string `json:"numOfInstances"`
+	VolumeType          string `json:"volumeType"`
+	VolumeSize          string `json:"volumeSize"`
+	IsAutoScaling       bool   `json:"isAutoScaling"`
+	IsStaticIp          bool   `json:"isStaticIp"`
+	Loadbalancer        string `json:"loadbalancer"`
+	IsFsx               bool   `json:"isFsx"`
+	IsEfs               bool   `json:"isEfs"`
+	IsElasticacheRedis  bool   `json:"isElasticacheRedis"`
+}
+
 // Register registers all routes under the provided router group.
 func (m *MockPromotionController) Register(rg *gin.RouterGroup) {
 	g := rg.Group("/mock-api/jarvis/promotion")
@@ -86,6 +109,8 @@ func (m *MockPromotionController) Register(rg *gin.RouterGroup) {
 	g.GET("/promote-to-environments", m.GetPromoteToEnvironments)
 	g.GET("/bifrost-categories",      m.GetBifrostCategories)
 	g.GET("/vpc-options",             m.GetVpcOptions)
+	g.GET("/sample-apptiers",         m.GetSampleAppTiers)
+	g.GET("/sample-webtiers",         m.GetSampleWebTiers)
 }
 
 func (m *MockPromotionController) Health(c *gin.Context) {
@@ -117,6 +142,47 @@ func (m *MockPromotionController) GetBifrostCategories(c *gin.Context) {
 // GET /vpc-options — used for both internalVpc and ingressVpc
 func (m *MockPromotionController) GetVpcOptions(c *gin.Context) {
 	c.JSON(200, m.vpcOptions)
+}
+
+// GET /sample-apptiers — 18 sample app tier rows for pipeline and form testing
+func (m *MockPromotionController) GetSampleAppTiers(c *gin.Context) {
+	tiers := []TierItem{}
+	lbs := []string{"ALB", "ALB", "NLB", "ALB", "None", "None", "ALB", "ALB", "NLB", "ALB", "None", "ALB", "ALB", "NLB", "None", "ALB", "ALB", "NLB"}
+	oses := []string{"Linux", "Linux", "Linux", "Windows", "Linux", "Linux", "Linux", "Linux", "Windows", "Linux", "Linux", "Linux", "Linux", "Windows", "Linux", "Linux", "Linux", "Windows"}
+	sizes := []string{"Medium", "Large", "Medium", "Large", "Medium", "Small", "Medium", "Medium", "Large", "Medium", "Small", "Medium", "Large", "Medium", "Small", "Medium", "Large", "Medium"}
+	for i := 1; i <= 18; i++ {
+		tiers = append(tiers, TierItem{
+			RepositoryName:      fmt.Sprintf("app-tier-repo-%d", i),
+			OS:                  oses[i-1],
+			BitbucketProjectKey: "QNA",
+			IsNotForPromotion:   i == 11,
+			IsBifrost:           i != 12,
+			IsServerlessPattern: i == 5 || i == 15,
+			IsS3Only:            i == 6,
+			IsPublicFacing:      false,
+			InstanceSize:        sizes[i-1],
+			NumOfInstances:      "2",
+			VolumeType:          "gp3",
+			VolumeSize:          "40",
+			IsAutoScaling:       i%3 == 0,
+			IsStaticIp:          i == 8 || i == 14,
+			Loadbalancer:        lbs[i-1],
+			IsFsx:               i == 7 || i == 16,
+			IsEfs:               i == 2 || i == 10 || i == 16,
+			IsElasticacheRedis:  i == 1 || i == 8 || i == 13 || i == 17,
+		})
+	}
+	c.JSON(200, tiers)
+}
+
+// GET /sample-webtiers — 3 sample web tier rows for pipeline and form testing
+func (m *MockPromotionController) GetSampleWebTiers(c *gin.Context) {
+	tiers := []TierItem{
+		{RepositoryName: "web-tier-repo-1", OS: "Linux", BitbucketProjectKey: "QNA", IsBifrost: true, InstanceSize: "Medium", NumOfInstances: "2", VolumeType: "gp3", VolumeSize: "40", IsAutoScaling: true, IsPublicFacing: true, Loadbalancer: "ALB"},
+		{RepositoryName: "web-tier-repo-2", OS: "Linux", BitbucketProjectKey: "QNA", IsBifrost: true, InstanceSize: "Large", NumOfInstances: "3", VolumeType: "gp3", VolumeSize: "60", IsAutoScaling: true, IsPublicFacing: true, Loadbalancer: "NLB"},
+		{RepositoryName: "web-tier-repo-3", OS: "Windows", BitbucketProjectKey: "QNA", IsBifrost: true, InstanceSize: "Small", NumOfInstances: "1", VolumeType: "gp3", VolumeSize: "40", IsStaticIp: true, Loadbalancer: "None"},
+	}
+	c.JSON(200, tiers)
 }
 
 func main() {
