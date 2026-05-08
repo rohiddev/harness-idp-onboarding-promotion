@@ -8,9 +8,10 @@ metadata:
   orgIdentifier: cfg_sandbox_dev
   projectIdentifier: cfgIDPproject
   description: >
-    JARVIS self-service onboarding promotion. Captures cloud type, deployment division,
-    region, DMND ticket, environment, qualys scan status, and Bifrost categorisation
-    before promoting an application to the next environment.
+    JARVIS self-service onboarding promotion. Promotes an application from one
+    environment to the next. Captures cloud type, division, region, DMND ticket,
+    environment, qualys scan, rehydration strategy, Bifrost category, and all
+    web and app tier definitions.
   tags:
     - jarvis
     - onboarding
@@ -19,48 +20,31 @@ metadata:
   icon: cloud
   actionButton:
     intent: success
-    text: Continue
+    text: Submit Promotion
 
 spec:
 
-  # ══════════════════════════════════════════════════════════════════════════
-  # FIELD CHAIN - single page
-  #
-  #   applicationId      - SYS ID (SYSID-#####)
-  #   cloudType          - static enum: AWS | Azure
-  #   deploymentDivision - SelectFieldFromApi -> /divisions
-  #   promotedFromRegion - SelectFieldFromApi -> /regions
-  #   dmndTicket         - text (DMND + digits, ServiceNow)
-  #   promotedFromEnv    - SelectFieldFromApi -> /environments
-  #   qualysScan         - static enum: Yes | No
-  #   rehydrationOrPatch - static enum: Rehydration | PatchInPlace
-  #   bifrostCategory    - SelectFieldFromApi -> /bifrost-categories
-  #
-  # PROXY PREFIX: proxy/platform-api/hoover-service/mock-api/jarvis/promotion/
-  # BEST PRACTICES:
-  # - All fields in base properties (never allOf/then/properties)
-  # - allOf used for required: enforcement only
-  # - SelectFieldFromApi params path-embedded — no params: block
-  # - Empty params -> always return [] (never 4xx)
-  # ══════════════════════════════════════════════════════════════════════════
-
   parameters:
 
-    - title: Onboarding Promotion Step 1
+    # ══════════════════════════════════════════════════════════════════════════
+    # PAGE 1 — Promotion Details (Section A)
+    # Validated against Jarvis lookup on submission.
+    # ══════════════════════════════════════════════════════════════════════════
+    - title: Promotion Details
       description: >
-        Complete all fields below to promote your application.
-        A clean Qualys scan is required before promotion can proceed.
+        Complete all fields below. A clean Qualys scan is required before
+        promotion can proceed.
 
       required:
         - applicationId
         - cloudType
-        - deploymentDivision
+        - division
         - promotedFromRegion
-        - dmndTicket
-        - promotedFromEnv
+        - demandTicket
+        - promotedFromEnviroment
         - qualysScan
-        - rehydrationOrPatch
-        - bifrostCategory
+        - elaborationProcess
+        - applicationStage
 
       properties:
 
@@ -70,11 +54,10 @@ spec:
           ui:widget: password
           ui:field: HarnessAuthToken
 
-        # ── Application ID ────────────────────────────────────────────────
         applicationId:
           title: 'What is your application ID? *'
           type: string
-          description: 'Format: SYSID-##### - 5-digit number after the prefix'
+          description: 'Format: SYSID-##### — 5-digit number after the prefix'
           default: 'SYSID-'
           ui:autofocus: true
           ui:placeholder: 'Application ID - e.g. SYSID-06534'
@@ -82,19 +65,17 @@ spec:
           minLength: 11
           maxLength: 11
 
-        # ── Cloud Type ────────────────────────────────────────────────────
         cloudType:
-          title: 'Select your cloudType *'
+          title: 'Select your cloud type *'
           type: string
           description: 'Public cloud provider for this promotion'
           enum:
-            - 'AWS'
-            - 'Azure'
+            - AWS
+            - Azure
           ui:widget: select
 
-        # ── Deployment Division ───────────────────────────────────────────
-        deploymentDivision:
-          title: 'Select deployment division? (this is where the infra will be built) *'
+        division:
+          title: 'Select deployment division *'
           type: string
           description: 'Business division that owns the infrastructure'
           ui:field: SelectFieldFromApi
@@ -104,7 +85,6 @@ spec:
             labelSelector: label
             placeholder: 'Deployment Division - Select a division...'
 
-        # ── Promoted From Region ──────────────────────────────────────────
         promotedFromRegion:
           title: 'Select a promoted from region *'
           type: string
@@ -116,17 +96,16 @@ spec:
             labelSelector: label
             placeholder: 'Region - Select a region...'
 
-        # ── DMND Ticket ───────────────────────────────────────────────────
-        dmndTicket:
-          title: 'What is your DMND ticket # - This should be in servicenow and will look something like this DMND123456789 *'
+        demandTicket:
+          title: 'What is your DMND ticket number? *'
           type: string
-          description: 'ServiceNow DMND ticket number for this promotion request'
+          description: 'ServiceNow DMND ticket — e.g. DMND123456789'
           ui:placeholder: 'DMND Ticket - e.g. DMND1234556'
           pattern: '^DMND[0-9A-Z]+$'
 
-        # ── Promoted From Environment ─────────────────────────────────────
-        promotedFromEnv:
-          title: 'Please select a promoted from environment *'
+        # API field name has a deliberate typo (single n) — matches Jarvis exactly
+        promotedFromEnviroment:
+          title: 'Select a promoted from environment *'
           type: string
           description: 'The environment you are promoting from'
           ui:field: SelectFieldFromApi
@@ -136,37 +115,436 @@ spec:
             labelSelector: label
             placeholder: 'Environment - Select an environment...'
 
-        # ── Qualys Scan ───────────────────────────────────────────────────
         qualysScan:
-          title: 'Have you submitted for a qualys scan? *'
+          title: 'Have you submitted for a Qualys scan? *'
           type: string
-          description: 'This must be Yes in order to proceed, you have to have a clean qualys scan to promote'
+          description: 'Must be Yes to proceed — a clean Qualys scan is required'
           enum:
             - 'Yes'
             - 'No'
           ui:widget: select
 
-        # ── Rehydration or Patch ──────────────────────────────────────────
-        rehydrationOrPatch:
+        elaborationProcess:
           title: 'Will your application be rehydratable or patch in place? *'
           type: string
           description: 'Select the deployment strategy for your application'
           enum:
-            - 'Rehydration'
-            - 'PatchInPlace'
+            - Rehydration
+            - PatchInPlace
           ui:widget: select
 
-        # ── Bifrost Category ──────────────────────────────────────────────
-        bifrostCategory:
-          title: 'Categorizations of Applications on Bifrost? *'
+        applicationStage:
+          title: 'Categorisation on Bifrost? *'
           type: string
-          description: 'Select the Bifrost application category that applies to this application'
+          description: 'Select the Bifrost application category that applies'
           ui:field: SelectFieldFromApi
           ui:options:
             path: 'proxy/platform-api/hoover-service/mock-api/jarvis/promotion/bifrost-categories'
             valueSelector: value
             labelSelector: label
             placeholder: 'Bifrost Category - Select a category...'
+
+    # ══════════════════════════════════════════════════════════════════════════
+    # PAGE 2 — Application Configuration (Section B)
+    # ══════════════════════════════════════════════════════════════════════════
+    - title: Application Configuration
+      description: >
+        Configure your application resources, VPCs, and networking.
+
+      required:
+        - applicationName
+        - environment
+        - multiRegionDeployment
+        - bitbucketProjectKey
+        - assignmentGroup
+
+      properties:
+
+        isOnboardingSkipped:
+          title: 'Skip entire onboarding resource creation?'
+          description: 'Toggle ON only if you want to skip the onboarding resources creation entirely'
+          type: boolean
+          default: false
+
+        applicationName:
+          title: 'Application name *'
+          type: string
+          description: 'e.g. EPCloud-Training-AWS'
+          ui:placeholder: 'Application Name - e.g. EPCloud-Training-AWS'
+
+        environment:
+          title: 'Which environment do you want to promote to? *'
+          type: string
+          ui:field: SelectFieldFromApi
+          ui:options:
+            path: 'proxy/platform-api/hoover-service/mock-api/jarvis/promotion/promote-to-environments'
+            valueSelector: value
+            labelSelector: label
+            placeholder: 'Target Environment - Select...'
+
+        multiRegionDeployment:
+          title: 'Select deployment region(s) *'
+          type: array
+          uniqueItems: true
+          ui:widget: checkboxes
+          description: 'Select one or more regions to deploy to'
+          items:
+            type: string
+            enum:
+              - us-east-1
+              - us-east-2
+              - us-west-2
+              - eu-west-1
+              - eu-central-1
+              - eastus
+              - eastus2
+              - westeurope
+
+        bitbucketProjectKey:
+          title: 'Bitbucket project key *'
+          type: string
+          description: 'e.g. QNA'
+          ui:placeholder: 'Bitbucket Project Key - e.g. QNA'
+
+        isS3Required:
+          title: 'Do you need S3?'
+          type: boolean
+          default: false
+
+        isSqsRequired:
+          title: 'Do you need SQS (KMS KEY)?'
+          type: boolean
+          default: false
+
+        networkConnectivity:
+          title: 'Enterprise applications (optional)'
+          type: array
+          uniqueItems: true
+          ui:widget: checkboxes
+          description: 'Select enterprise applications this service needs to reach'
+          items:
+            type: string
+            enum:
+              - EnterpriseApp-1
+              - EnterpriseApp-2
+              - EnterpriseApp-3
+
+        lamAddonServices:
+          title: 'Add-ons (optional)'
+          type: array
+          uniqueItems: true
+          ui:widget: checkboxes
+          description: 'Select any LAM add-on services required'
+          items:
+            type: string
+            enum:
+              - Addon-1
+              - Addon-2
+              - Addon-3
+
+        internalVpc:
+          title: 'Select internal VPC'
+          type: string
+          description: 'If you do not know, select default'
+          ui:field: SelectFieldFromApi
+          ui:options:
+            path: 'proxy/platform-api/hoover-service/mock-api/jarvis/promotion/vpc-options'
+            valueSelector: value
+            labelSelector: label
+            placeholder: 'Internal VPC - default'
+
+        ingressVpc:
+          title: 'Select ingress VPC'
+          type: string
+          description: 'If you do not know, select default'
+          ui:field: SelectFieldFromApi
+          ui:options:
+            path: 'proxy/platform-api/hoover-service/mock-api/jarvis/promotion/vpc-options'
+            valueSelector: value
+            labelSelector: label
+            placeholder: 'Ingress VPC - default'
+
+        assignmentGroup:
+          title: 'Assignment group *'
+          type: string
+          description: 'e.g. Workload_Cloud_Tools'
+          ui:placeholder: 'Assignment Group - e.g. Workload_Cloud_Tools'
+
+    # ══════════════════════════════════════════════════════════════════════════
+    # PAGE 3 — Web Tiers
+    # Each item = one web tier. Add/remove as needed.
+    # ══════════════════════════════════════════════════════════════════════════
+    - title: Define Web Tiers
+      description: >
+        Add one entry per web tier. In production 2-3 tiers is typical.
+        Leave empty if no web tiers are required.
+
+      properties:
+
+        webs:
+          title: 'Web Tier(s)'
+          type: array
+          minItems: 0
+          ui:options:
+            addable: true
+            removable: true
+            orderable: true
+          items:
+            type: object
+            required:
+              - repositoryName
+              - os
+            properties:
+
+              repositoryName:
+                title: 'Bifrost Bitbucket repository name *'
+                type: string
+                ui:placeholder: 'Repository Name'
+
+              os:
+                title: 'Windows or Linux? *'
+                type: string
+                enum:
+                  - Linux
+                  - Windows
+                ui:widget: select
+
+              bitbucketProjectKey:
+                title: 'Bitbucket project key (per tier)'
+                type: string
+                ui:placeholder: 'e.g. QNA'
+
+              isNotForPromotion:
+                title: 'Skip promotion for this tier?'
+                description: 'Toggle ON to exclude this tier from promotion'
+                type: boolean
+                default: false
+
+              isBifrost:
+                title: 'Onboard via Bifrost?'
+                type: boolean
+                default: true
+
+              isServerlessPattern:
+                title: 'Lambda pattern only?'
+                type: boolean
+                default: false
+
+              isS3Only:
+                title: 'S3 only?'
+                type: boolean
+                default: false
+
+              isPublicFacing:
+                title: 'Will this web tier be public facing?'
+                type: boolean
+                default: false
+
+              instanceSize:
+                title: 'Instance size'
+                type: string
+                default: Medium
+                enum:
+                  - Small
+                  - Medium
+                  - Large
+                ui:widget: select
+
+              numOfInstances:
+                title: 'Number of instances'
+                type: string
+                default: '1'
+                ui:placeholder: 'e.g. 1'
+
+              volumeType:
+                title: 'Volume type'
+                type: string
+                default: gp3
+                enum:
+                  - gp3
+                  - io2
+                ui:widget: select
+
+              volumeSize:
+                title: 'Volume size (GB)'
+                type: string
+                default: '40'
+                ui:placeholder: 'e.g. 40'
+
+              isAutoScaling:
+                title: 'Autoscaling?'
+                type: boolean
+                default: false
+
+              isStaticIp:
+                title: 'Static IP?'
+                type: boolean
+                default: false
+
+              loadbalancer:
+                title: 'Load balancer type'
+                type: string
+                default: None
+                enum:
+                  - None
+                  - ALB
+                  - NLB
+                ui:widget: select
+
+              isFsx:
+                title: 'Require FSX?'
+                type: boolean
+                default: false
+
+              isEfs:
+                title: 'Require EFS?'
+                type: boolean
+                default: false
+
+              isElasticacheRedis:
+                title: 'Require ElastiCache Redis?'
+                type: boolean
+                default: false
+
+    # ══════════════════════════════════════════════════════════════════════════
+    # PAGE 4 — App Tiers + Submit
+    # Identical item schema to web tiers.
+    # ══════════════════════════════════════════════════════════════════════════
+    - title: Define App Tiers & Submit
+      description: >
+        Add one entry per app tier. Leave empty if no app tiers are required.
+
+      properties:
+
+        apps:
+          title: 'App Tier(s)'
+          type: array
+          minItems: 0
+          ui:options:
+            addable: true
+            removable: true
+            orderable: true
+          items:
+            type: object
+            required:
+              - repositoryName
+              - os
+            properties:
+
+              repositoryName:
+                title: 'Bifrost Bitbucket repository name *'
+                type: string
+                ui:placeholder: 'Repository Name'
+
+              os:
+                title: 'Windows or Linux? *'
+                type: string
+                enum:
+                  - Linux
+                  - Windows
+                ui:widget: select
+
+              bitbucketProjectKey:
+                title: 'Bitbucket project key (per tier)'
+                type: string
+                ui:placeholder: 'e.g. QNA'
+
+              isNotForPromotion:
+                title: 'Skip promotion for this tier?'
+                description: 'Toggle ON to exclude this tier from promotion'
+                type: boolean
+                default: false
+
+              isBifrost:
+                title: 'Onboard via Bifrost?'
+                type: boolean
+                default: true
+
+              isServerlessPattern:
+                title: 'Lambda pattern only?'
+                type: boolean
+                default: false
+
+              isS3Only:
+                title: 'S3 only?'
+                type: boolean
+                default: false
+
+              isPublicFacing:
+                title: 'Will this app tier be public facing?'
+                type: boolean
+                default: false
+
+              instanceSize:
+                title: 'Instance size'
+                type: string
+                default: Medium
+                enum:
+                  - Small
+                  - Medium
+                  - Large
+                ui:widget: select
+
+              numOfInstances:
+                title: 'Number of instances'
+                type: string
+                default: '1'
+                ui:placeholder: 'e.g. 1'
+
+              volumeType:
+                title: 'Volume type'
+                type: string
+                default: gp3
+                enum:
+                  - gp3
+                  - io2
+                ui:widget: select
+
+              volumeSize:
+                title: 'Volume size (GB)'
+                type: string
+                default: '40'
+                ui:placeholder: 'e.g. 40'
+
+              isAutoScaling:
+                title: 'Autoscaling?'
+                type: boolean
+                default: false
+
+              isStaticIp:
+                title: 'Static IP?'
+                type: boolean
+                default: false
+
+              loadbalancer:
+                title: 'Load balancer type'
+                type: string
+                default: None
+                enum:
+                  - None
+                  - ALB
+                  - NLB
+                ui:widget: select
+
+              isFsx:
+                title: 'Require FSX?'
+                type: boolean
+                default: false
+
+              isEfs:
+                title: 'Require EFS?'
+                type: boolean
+                default: false
+
+              isElasticacheRedis:
+                title: 'Require ElastiCache Redis?'
+                type: boolean
+                default: false
+
+        isDbTier:
+          title: 'Do you have a Database tier?'
+          type: boolean
+          default: false
 
   # ─────────────────────────────────────────────────────────────────────────
   # STEPS
@@ -176,19 +554,33 @@ spec:
       name: Submit Promotion Request
       action: trigger:harness-custom-pipeline
       input:
-        pipelineId: jarvis_onboarding_promotion_step1
-        orgIdentifier: cfg_sandbox_dev
-        projectIdentifier: cfgIDPproject
-        inputValues:
-          applicationId:      ${{ parameters.applicationId }}
-          cloudType:          ${{ parameters.cloudType }}
-          deploymentDivision: ${{ parameters.deploymentDivision }}
-          promotedFromRegion: ${{ parameters.promotedFromRegion }}
-          dmndTicket:         ${{ parameters.dmndTicket }}
-          promotedFromEnv:    ${{ parameters.promotedFromEnv }}
-          qualysScan:         ${{ parameters.qualysScan }}
-          rehydrationOrPatch: ${{ parameters.rehydrationOrPatch }}
-          bifrostCategory:    ${{ parameters.bifrostCategory }}
+        url: https://app.harness.io/ng/account/ACCOUNT_ID/module/idp/orgs/cfg_sandbox_dev/projects/cfgIDPproject/pipelines/jarvis_onboarding_promotion_step1
+        inputset:
+          applicationId:          ${{ parameters.applicationId }}
+          cloudType:              ${{ parameters.cloudType }}
+          division:               ${{ parameters.division }}
+          promotedFromRegion:     ${{ parameters.promotedFromRegion }}
+          demandTicket:           ${{ parameters.demandTicket }}
+          promotedFromEnviroment: ${{ parameters.promotedFromEnviroment }}
+          qualysScan:             ${{ parameters.qualysScan }}
+          elaborationProcess:     ${{ parameters.elaborationProcess }}
+          applicationStage:       ${{ parameters.applicationStage }}
+          isOnboardingSkipped:    ${{ parameters.isOnboardingSkipped }}
+          applicationName:        ${{ parameters.applicationName }}
+          environment:            ${{ parameters.environment }}
+          multiRegionDeployment:  ${{ parameters.multiRegionDeployment }}
+          bitbucketProjectKey:    ${{ parameters.bitbucketProjectKey }}
+          isS3Required:           ${{ parameters.isS3Required }}
+          isSqsRequired:          ${{ parameters.isSqsRequired }}
+          networkConnectivity:    ${{ parameters.networkConnectivity }}
+          lamAddonServices:       ${{ parameters.lamAddonServices }}
+          internalVpc:            ${{ parameters.internalVpc }}
+          ingressVpc:             ${{ parameters.ingressVpc }}
+          assignmentGroup:        ${{ parameters.assignmentGroup }}
+          webs:                   ${{ parameters.webs }}
+          apps:                   ${{ parameters.apps }}
+          isDbTier:               ${{ parameters.isDbTier }}
+        showOutputVariables: true
 
   # ─────────────────────────────────────────────────────────────────────────
   # OUTPUT
@@ -203,14 +595,30 @@ spec:
         content: |
           Your promotion request has been submitted successfully.
 
+          **Section A**
+
           | Field | Value |
-          |-------|-------|
+          |---|---|
           | Application ID | `${{ parameters.applicationId }}` |
           | Cloud Type | `${{ parameters.cloudType }}` |
-          | Deployment Division | `${{ parameters.deploymentDivision }}` |
-          | Region | `${{ parameters.promotedFromRegion }}` |
-          | DMND Ticket | `${{ parameters.dmndTicket }}` |
-          | Environment | `${{ parameters.promotedFromEnv }}` |
+          | Division | `${{ parameters.division }}` |
+          | Promoted From Region | `${{ parameters.promotedFromRegion }}` |
+          | DMND Ticket | `${{ parameters.demandTicket }}` |
+          | Promoted From Environment | `${{ parameters.promotedFromEnviroment }}` |
           | Qualys Scan | `${{ parameters.qualysScan }}` |
-          | Rehydration / Patch | `${{ parameters.rehydrationOrPatch }}` |
-          | Bifrost Category | `${{ parameters.bifrostCategory }}` |
+          | Elaboration Process | `${{ parameters.elaborationProcess }}` |
+          | Application Stage | `${{ parameters.applicationStage }}` |
+
+          **Section B**
+
+          | Field | Value |
+          |---|---|
+          | Application Name | `${{ parameters.applicationName }}` |
+          | Target Environment | `${{ parameters.environment }}` |
+          | Bitbucket Project Key | `${{ parameters.bitbucketProjectKey }}` |
+          | Assignment Group | `${{ parameters.assignmentGroup }}` |
+          | S3 Required | `${{ parameters.isS3Required }}` |
+          | SQS Required | `${{ parameters.isSqsRequired }}` |
+          | Internal VPC | `${{ parameters.internalVpc }}` |
+          | Ingress VPC | `${{ parameters.ingressVpc }}` |
+          | DB Tier | `${{ parameters.isDbTier }}` |
