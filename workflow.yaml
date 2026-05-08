@@ -80,7 +80,7 @@ spec:
           description: 'Business division that owns the infrastructure'
           ui:field: SelectFieldFromApi
           ui:options:
-            path: 'proxy/platform-api/hoover-service/mock-api/jarvis/promotion/{parameters.cloudType}/divisions'
+            path: 'proxy/platform-api/hoover-service/mock-api/jarvis/promotion/{{ parameters.cloudType }}/divisions'
             valueSelector: value
             labelSelector: label
             placeholder: 'Deployment Division - Select after choosing cloud type...'
