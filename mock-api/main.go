@@ -111,6 +111,7 @@ type TierItem struct {
 func (m *MockPromotionController) Register(rg *gin.RouterGroup) {
 	g := rg.Group("/mock-api/jarvis/promotion")
 	g.GET("/health",                  m.Health)
+	g.GET("/divisions",               m.GetDivisions)
 	g.GET("/:cloudType/divisions",    m.GetDivisions)
 	g.GET("/regions",                 m.GetRegions)
 	g.GET("/environments",            m.GetEnvironments)
