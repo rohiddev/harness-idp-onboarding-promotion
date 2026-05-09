@@ -58,7 +58,7 @@ spec:
           title: 'What is your application ID? *'
           type: string
           description: 'Format: SYSID-##### — 5-digit number after the prefix'
-          default: 'SYSID-'
+          default: 'SYSID-06534'
           ui:autofocus: true
           ui:placeholder: 'Application ID - e.g. SYSID-06534'
           pattern: '^SYSID-[0-9]{5}$'
@@ -78,28 +78,40 @@ spec:
           title: 'Select deployment division *'
           type: string
           description: 'Business division that owns the infrastructure'
-          ui:field: SelectFieldFromApi
-          ui:options:
-            path: 'proxy/platform-api/hoover-service/mock-api/jarvis/promotion/divisions'
-            valueSelector: value
-            labelSelector: label
-            placeholder: 'Deployment Division - Select a division...'
+          default: Colleaguetech
+          enum:
+            - Colleaguetech
+            - Commercial
+            - CommercialConnect
+            - Consumer
+            - ConsumerConnect
+            - Digital
+            - Edo
+            - Entsvc
+            - Exvendor
+          ui:widget: select
 
         promotedFromRegion:
           title: 'Select a promoted from region *'
           type: string
           description: 'The region you are promoting from'
-          ui:field: SelectFieldFromApi
-          ui:options:
-            path: 'proxy/platform-api/hoover-service/mock-api/jarvis/promotion/regions'
-            valueSelector: value
-            labelSelector: label
-            placeholder: 'Region - Select a region...'
+          default: us-east-1
+          enum:
+            - us-east-1
+            - us-east-2
+            - us-west-2
+            - eu-west-1
+            - eu-central-1
+            - eastus
+            - eastus2
+            - westeurope
+          ui:widget: select
 
         demandTicket:
           title: 'What is your DMND ticket number? *'
           type: string
           description: 'ServiceNow DMND ticket — e.g. DMND123456789'
+          default: 'DMND1234567890'
           ui:placeholder: 'DMND Ticket - e.g. DMND1234556'
           pattern: '^DMND[0-9A-Z]+$'
 
@@ -108,12 +120,11 @@ spec:
           title: 'Select a promoted from environment *'
           type: string
           description: 'The environment you are promoting from'
-          ui:field: SelectFieldFromApi
-          ui:options:
-            path: 'proxy/platform-api/hoover-service/mock-api/jarvis/promotion/environments'
-            valueSelector: value
-            labelSelector: label
-            placeholder: 'Environment - Select an environment...'
+          default: dev
+          enum:
+            - dev
+            - qa
+          ui:widget: select
 
         qualysScan:
           title: 'Have you submitted for a Qualys scan? *'
@@ -137,12 +148,13 @@ spec:
           title: 'Categorisation on Bifrost? *'
           type: string
           description: 'Select the Bifrost application category that applies'
-          ui:field: SelectFieldFromApi
-          ui:options:
-            path: 'proxy/platform-api/hoover-service/mock-api/jarvis/promotion/bifrost-categories'
-            valueSelector: value
-            labelSelector: label
-            placeholder: 'Bifrost Category - Select a category...'
+          default: 'Not Required'
+          enum:
+            - 'Bifrost - Application Software Manual Install'
+            - 'Bifrost - Application Software Partially Automated'
+            - 'Bifrost - Application Software Install Full Utilization'
+            - 'Not Required'
+          ui:widget: select
 
     # ══════════════════════════════════════════════════════════════════════════
     # PAGE 2 — Application Configuration (Section B)
@@ -170,17 +182,17 @@ spec:
           title: 'Application name *'
           type: string
           description: 'e.g. EPCloud-Training-AWS'
+          default: 'EPCloud-Training-AWS'
           ui:placeholder: 'Application Name - e.g. EPCloud-Training-AWS'
 
         environment:
           title: 'Which environment do you want to promote to? *'
           type: string
-          ui:field: SelectFieldFromApi
-          ui:options:
-            path: 'proxy/platform-api/hoover-service/mock-api/jarvis/promotion/promote-to-environments'
-            valueSelector: value
-            labelSelector: label
-            placeholder: 'Target Environment - Select...'
+          default: qa
+          enum:
+            - qa
+            - prod
+          ui:widget: select
 
         multiRegionDeployment:
           title: 'Select deployment region(s) *'
@@ -204,6 +216,7 @@ spec:
           title: 'Bitbucket project key *'
           type: string
           description: 'e.g. QNA'
+          default: 'QNA'
           ui:placeholder: 'Bitbucket Project Key - e.g. QNA'
 
         isS3Required:
@@ -246,28 +259,29 @@ spec:
           title: 'Select internal VPC'
           type: string
           description: 'If you do not know, select default'
-          ui:field: SelectFieldFromApi
-          ui:options:
-            path: 'proxy/platform-api/hoover-service/mock-api/jarvis/promotion/vpc-options'
-            valueSelector: value
-            labelSelector: label
-            placeholder: 'Internal VPC - default'
+          default: default
+          enum:
+            - default
+            - custom-vpc-1
+            - custom-vpc-2
+          ui:widget: select
 
         ingressVpc:
           title: 'Select ingress VPC'
           type: string
           description: 'If you do not know, select default'
-          ui:field: SelectFieldFromApi
-          ui:options:
-            path: 'proxy/platform-api/hoover-service/mock-api/jarvis/promotion/vpc-options'
-            valueSelector: value
-            labelSelector: label
-            placeholder: 'Ingress VPC - default'
+          default: default
+          enum:
+            - default
+            - custom-vpc-1
+            - custom-vpc-2
+          ui:widget: select
 
         assignmentGroup:
           title: 'Assignment group *'
           type: string
           description: 'e.g. Workload_Cloud_Tools'
+          default: 'Workload_Cloud_Tools'
           ui:placeholder: 'Assignment Group - e.g. Workload_Cloud_Tools'
 
     # ══════════════════════════════════════════════════════════════════════════
