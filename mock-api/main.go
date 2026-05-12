@@ -37,6 +37,8 @@ type MockPromotionController struct {
 	promoteToEnvironments []Option
 	bifrostCategories     []Option
 	vpcOptions            []Option
+	appTierConfig         map[string]TierItem
+	webTierConfig         map[string]TierItem
 }
 
 // NewMockPromotionController creates a new controller with mock data.
@@ -82,6 +84,47 @@ func NewMockPromotionController() *MockPromotionController {
 			{Value: "custom-vpc-1", Label: "custom-vpc-1"},
 			{Value: "custom-vpc-2", Label: "custom-vpc-2"},
 		},
+		appTierConfig: buildAppTierConfig(),
+		webTierConfig: buildWebTierConfig(),
+	}
+}
+
+func buildAppTierConfig() map[string]TierItem {
+	lbs   := []string{"ALB", "ALB", "NLB", "ALB", "None", "None", "ALB", "ALB", "NLB", "ALB", "None", "ALB", "ALB", "NLB", "None", "ALB", "ALB", "NLB"}
+	oses  := []string{"Linux", "Linux", "Linux", "Windows", "Linux", "Linux", "Linux", "Linux", "Windows", "Linux", "Linux", "Linux", "Linux", "Windows", "Linux", "Linux", "Linux", "Windows"}
+	sizes := []string{"Medium", "Large", "Medium", "Large", "Medium", "Small", "Medium", "Medium", "Large", "Medium", "Small", "Medium", "Large", "Medium", "Small", "Medium", "Large", "Medium"}
+	m := make(map[string]TierItem, 18)
+	for i := 1; i <= 18; i++ {
+		name := fmt.Sprintf("app-tier-repo-%d", i)
+		m[name] = TierItem{
+			RepositoryName:      name,
+			OS:                  oses[i-1],
+			BitbucketProjectKey: "QNA",
+			IsNotForPromotion:   i == 11,
+			IsBifrost:           i != 12,
+			IsServerlessPattern: i == 5 || i == 15,
+			IsS3Only:            i == 6,
+			IsPublicFacing:      false,
+			InstanceSize:        sizes[i-1],
+			NumOfInstances:      "2",
+			VolumeType:          "gp3",
+			VolumeSize:          "40",
+			IsAutoScaling:       i%3 == 0,
+			IsStaticIp:          i == 8 || i == 14,
+			Loadbalancer:        lbs[i-1],
+			IsFsx:               i == 7 || i == 16,
+			IsEfs:               i == 2 || i == 10 || i == 16,
+			IsElasticacheRedis:  i == 1 || i == 8 || i == 13 || i == 17,
+		}
+	}
+	return m
+}
+
+func buildWebTierConfig() map[string]TierItem {
+	return map[string]TierItem{
+		"web-tier-repo-1": {RepositoryName: "web-tier-repo-1", OS: "Linux",   BitbucketProjectKey: "QNA", IsBifrost: true, InstanceSize: "Medium", NumOfInstances: "2", VolumeType: "gp3", VolumeSize: "40", IsAutoScaling: true,  IsPublicFacing: true,  Loadbalancer: "ALB"},
+		"web-tier-repo-2": {RepositoryName: "web-tier-repo-2", OS: "Linux",   BitbucketProjectKey: "QNA", IsBifrost: true, InstanceSize: "Large",  NumOfInstances: "3", VolumeType: "gp3", VolumeSize: "60", IsAutoScaling: true,  IsPublicFacing: true,  Loadbalancer: "NLB"},
+		"web-tier-repo-3": {RepositoryName: "web-tier-repo-3", OS: "Windows", BitbucketProjectKey: "QNA", IsBifrost: true, InstanceSize: "Small",  NumOfInstances: "1", VolumeType: "gp3", VolumeSize: "40", IsStaticIp:   true,  IsPublicFacing: false, Loadbalancer: "None"},
 	}
 }
 
@@ -120,6 +163,10 @@ func (m *MockPromotionController) Register(rg *gin.RouterGroup) {
 	g.GET("/vpc-options",             m.GetVpcOptions)
 	g.GET("/sample-apptiers",         m.GetSampleAppTiers)
 	g.GET("/sample-webtiers",         m.GetSampleWebTiers)
+	g.GET("/apptier-options",         m.GetAppTierOptions)
+	g.GET("/webtier-options",         m.GetWebTierOptions)
+	g.GET("/apptier-config/:repo",    m.GetAppTierConfig)
+	g.GET("/webtier-config/:repo",    m.GetWebTierConfig)
 }
 
 func (m *MockPromotionController) MockPromotionRoutes(rg *gin.RouterGroup) {
@@ -191,6 +238,44 @@ func (m *MockPromotionController) GetSampleWebTiers(c *gin.Context) {
 		{RepositoryName: "web-tier-repo-3", OS: "Windows", BitbucketProjectKey: "QNA", IsBifrost: true, InstanceSize: "Small",  NumOfInstances: "1", VolumeType: "gp3", VolumeSize: "40", IsStaticIp:   true, IsPublicFacing: false, Loadbalancer: "None"},
 	}
 	c.JSON(200, tiers)
+}
+
+func (m *MockPromotionController) GetAppTierOptions(c *gin.Context) {
+	options := make([]Option, 18)
+	for i := 1; i <= 18; i++ {
+		name := fmt.Sprintf("app-tier-repo-%d", i)
+		options[i-1] = Option{Value: name, Label: name}
+	}
+	c.JSON(200, options)
+}
+
+func (m *MockPromotionController) GetWebTierOptions(c *gin.Context) {
+	options := []Option{
+		{Value: "web-tier-repo-1", Label: "web-tier-repo-1"},
+		{Value: "web-tier-repo-2", Label: "web-tier-repo-2"},
+		{Value: "web-tier-repo-3", Label: "web-tier-repo-3"},
+	}
+	c.JSON(200, options)
+}
+
+func (m *MockPromotionController) GetAppTierConfig(c *gin.Context) {
+	repo := c.Param("repo")
+	tier, ok := m.appTierConfig[repo]
+	if !ok {
+		c.JSON(404, gin.H{"error": "app tier not found", "repo": repo})
+		return
+	}
+	c.JSON(200, tier)
+}
+
+func (m *MockPromotionController) GetWebTierConfig(c *gin.Context) {
+	repo := c.Param("repo")
+	tier, ok := m.webTierConfig[repo]
+	if !ok {
+		c.JSON(404, gin.H{"error": "web tier not found", "repo": repo})
+		return
+	}
+	c.JSON(200, tier)
 }
 
 // ─── Onboarding Day 2 Step 1 ─────────────────────────────────────────────────

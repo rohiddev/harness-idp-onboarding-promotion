@@ -78,34 +78,21 @@ spec:
           title: 'Select deployment division *'
           type: string
           description: 'Business division that owns the infrastructure'
-          default: Colleaguetech
-          enum:
-            - Colleaguetech
-            - Commercial
-            - CommercialConnect
-            - Consumer
-            - ConsumerConnect
-            - Digital
-            - Edo
-            - Entsvc
-            - Exvendor
-          ui:widget: select
+          ui:field: SelectFieldFromApi
+          ui:options:
+            path: proxy/hoover-service/mock-api/jarvis/promotion/divisions
+            valueSelector: value
+            labelSelector: label
 
         promotedFromRegion:
           title: 'Select a promoted from region *'
           type: string
           description: 'The region you are promoting from'
-          default: us-east-1
-          enum:
-            - us-east-1
-            - us-east-2
-            - us-west-2
-            - eu-west-1
-            - eu-central-1
-            - eastus
-            - eastus2
-            - westeurope
-          ui:widget: select
+          ui:field: SelectFieldFromApi
+          ui:options:
+            path: proxy/hoover-service/mock-api/jarvis/promotion/regions
+            valueSelector: value
+            labelSelector: label
 
         demandTicket:
           title: 'What is your DMND ticket number? *'
@@ -120,11 +107,11 @@ spec:
           title: 'Select a promoted from environment *'
           type: string
           description: 'The environment you are promoting from'
-          default: dev
-          enum:
-            - dev
-            - qa
-          ui:widget: select
+          ui:field: SelectFieldFromApi
+          ui:options:
+            path: proxy/hoover-service/mock-api/jarvis/promotion/environments
+            valueSelector: value
+            labelSelector: label
 
         qualysScan:
           title: 'Have you submitted for a Qualys scan? *'
@@ -148,13 +135,11 @@ spec:
           title: 'Categorisation on Bifrost? *'
           type: string
           description: 'Select the Bifrost application category that applies'
-          default: 'Not Required'
-          enum:
-            - 'Bifrost - Application Software Manual Install'
-            - 'Bifrost - Application Software Partially Automated'
-            - 'Bifrost - Application Software Install Full Utilization'
-            - 'Not Required'
-          ui:widget: select
+          ui:field: SelectFieldFromApi
+          ui:options:
+            path: proxy/hoover-service/mock-api/jarvis/promotion/bifrost-categories
+            valueSelector: value
+            labelSelector: label
 
     # ══════════════════════════════════════════════════════════════════════════
     # PAGE 2 — Application Configuration (Section B)
@@ -188,11 +173,11 @@ spec:
         environment:
           title: 'Which environment do you want to promote to? *'
           type: string
-          default: qa
-          enum:
-            - qa
-            - prod
-          ui:widget: select
+          ui:field: SelectFieldFromApi
+          ui:options:
+            path: proxy/hoover-service/mock-api/jarvis/promotion/promote-to-environments
+            valueSelector: value
+            labelSelector: label
 
         multiRegionDeployment:
           title: 'Select deployment region(s) *'
@@ -259,23 +244,21 @@ spec:
           title: 'Select internal VPC'
           type: string
           description: 'If you do not know, select default'
-          default: default
-          enum:
-            - default
-            - custom-vpc-1
-            - custom-vpc-2
-          ui:widget: select
+          ui:field: SelectFieldFromApi
+          ui:options:
+            path: proxy/hoover-service/mock-api/jarvis/promotion/vpc-options
+            valueSelector: value
+            labelSelector: label
 
         ingressVpc:
           title: 'Select ingress VPC'
           type: string
           description: 'If you do not know, select default'
-          default: default
-          enum:
-            - default
-            - custom-vpc-1
-            - custom-vpc-2
-          ui:widget: select
+          ui:field: SelectFieldFromApi
+          ui:options:
+            path: proxy/hoover-service/mock-api/jarvis/promotion/vpc-options
+            valueSelector: value
+            labelSelector: label
 
         assignmentGroup:
           title: 'Assignment group *'
@@ -298,182 +281,15 @@ spec:
         webs:
           title: 'Web Tier(s)'
           type: array
-          minItems: 0
-          default:
-            - repositoryName: web-tier-repo-1
-              os: Linux
-              bitbucketProjectKey: QNA
-              isNotForPromotion: false
-              isBifrost: true
-              isServerlessPattern: false
-              isS3Only: false
-              isPublicFacing: true
-              instanceSize: Medium
-              numOfInstances: '2'
-              volumeType: gp3
-              volumeSize: '40'
-              isAutoScaling: true
-              isStaticIp: false
-              loadbalancer: ALB
-              isFsx: false
-              isEfs: false
-              isElasticacheRedis: false
-            - repositoryName: web-tier-repo-2
-              os: Linux
-              bitbucketProjectKey: QNA
-              isNotForPromotion: false
-              isBifrost: true
-              isServerlessPattern: false
-              isS3Only: false
-              isPublicFacing: true
-              instanceSize: Large
-              numOfInstances: '3'
-              volumeType: gp3
-              volumeSize: '60'
-              isAutoScaling: true
-              isStaticIp: false
-              loadbalancer: NLB
-              isFsx: false
-              isEfs: false
-              isElasticacheRedis: false
-            - repositoryName: web-tier-repo-3
-              os: Windows
-              bitbucketProjectKey: QNA
-              isNotForPromotion: false
-              isBifrost: true
-              isServerlessPattern: false
-              isS3Only: false
-              isPublicFacing: false
-              instanceSize: Small
-              numOfInstances: '1'
-              volumeType: gp3
-              volumeSize: '40'
-              isAutoScaling: false
-              isStaticIp: true
-              loadbalancer: None
-              isFsx: false
-              isEfs: false
-              isElasticacheRedis: false
-          ui:options:
-            addable: true
-            removable: true
-            orderable: true
+          description: 'Select the web tier repositories to promote. Add one entry per web tier.'
           items:
-            type: object
-            required:
-              - repositoryName
-              - os
-            properties:
-
-              repositoryName:
-                title: 'Bifrost Bitbucket repository name *'
-                type: string
-                ui:placeholder: 'Repository Name'
-
-              os:
-                title: 'Windows or Linux? *'
-                type: string
-                enum:
-                  - Linux
-                  - Windows
-                ui:widget: select
-
-              bitbucketProjectKey:
-                title: 'Bitbucket project key (per tier)'
-                type: string
-                ui:placeholder: 'e.g. QNA'
-
-              isNotForPromotion:
-                title: 'Skip promotion for this tier?'
-                description: 'Toggle ON to exclude this tier from promotion'
-                type: boolean
-                default: false
-
-              isBifrost:
-                title: 'Onboard via Bifrost?'
-                type: boolean
-                default: true
-
-              isServerlessPattern:
-                title: 'Lambda pattern only?'
-                type: boolean
-                default: false
-
-              isS3Only:
-                title: 'S3 only?'
-                type: boolean
-                default: false
-
-              isPublicFacing:
-                title: 'Will this web tier be public facing?'
-                type: boolean
-                default: false
-
-              instanceSize:
-                title: 'Instance size'
-                type: string
-                default: Medium
-                enum:
-                  - Small
-                  - Medium
-                  - Large
-                ui:widget: select
-
-              numOfInstances:
-                title: 'Number of instances'
-                type: string
-                default: '1'
-                ui:placeholder: 'e.g. 1'
-
-              volumeType:
-                title: 'Volume type'
-                type: string
-                default: gp3
-                enum:
-                  - gp3
-                  - io2
-                ui:widget: select
-
-              volumeSize:
-                title: 'Volume size (GB)'
-                type: string
-                default: '40'
-                ui:placeholder: 'e.g. 40'
-
-              isAutoScaling:
-                title: 'Autoscaling?'
-                type: boolean
-                default: false
-
-              isStaticIp:
-                title: 'Static IP?'
-                type: boolean
-                default: false
-
-              loadbalancer:
-                title: 'Load balancer type'
-                type: string
-                default: None
-                enum:
-                  - None
-                  - ALB
-                  - NLB
-                ui:widget: select
-
-              isFsx:
-                title: 'Require FSX?'
-                type: boolean
-                default: false
-
-              isEfs:
-                title: 'Require EFS?'
-                type: boolean
-                default: false
-
-              isElasticacheRedis:
-                title: 'Require ElastiCache Redis?'
-                type: boolean
-                default: false
+            type: string
+            ui:field: SelectFieldFromApi
+            ui:options:
+              path: proxy/hoover-service/mock-api/jarvis/promotion/webtier-options
+              valueSelector: value
+              labelSelector: label
+              placeholder: 'Select web tier repository...'
 
     # ══════════════════════════════════════════════════════════════════════════
     # PAGE 4 — App Tiers + Submit
@@ -488,452 +304,15 @@ spec:
         apps:
           title: 'App Tier(s)'
           type: array
-          minItems: 0
-          default:
-            - repositoryName: app-tier-repo-1
-              os: Linux
-              bitbucketProjectKey: QNA
-              isNotForPromotion: false
-              isBifrost: true
-              isServerlessPattern: false
-              isS3Only: false
-              isPublicFacing: false
-              instanceSize: Medium
-              numOfInstances: '2'
-              volumeType: gp3
-              volumeSize: '40'
-              isAutoScaling: true
-              isStaticIp: false
-              loadbalancer: ALB
-              isFsx: false
-              isEfs: false
-              isElasticacheRedis: true
-            - repositoryName: app-tier-repo-2
-              os: Linux
-              bitbucketProjectKey: QNA
-              isNotForPromotion: false
-              isBifrost: true
-              isServerlessPattern: false
-              isS3Only: false
-              isPublicFacing: false
-              instanceSize: Large
-              numOfInstances: '4'
-              volumeType: gp3
-              volumeSize: '80'
-              isAutoScaling: true
-              isStaticIp: false
-              loadbalancer: ALB
-              isFsx: false
-              isEfs: true
-              isElasticacheRedis: false
-            - repositoryName: app-tier-repo-3
-              os: Linux
-              bitbucketProjectKey: QNA
-              isNotForPromotion: false
-              isBifrost: true
-              isServerlessPattern: false
-              isS3Only: false
-              isPublicFacing: false
-              instanceSize: Medium
-              numOfInstances: '2'
-              volumeType: gp3
-              volumeSize: '40'
-              isAutoScaling: false
-              isStaticIp: false
-              loadbalancer: NLB
-              isFsx: false
-              isEfs: false
-              isElasticacheRedis: false
-            - repositoryName: app-tier-repo-4
-              os: Windows
-              bitbucketProjectKey: QNA
-              isNotForPromotion: false
-              isBifrost: true
-              isServerlessPattern: false
-              isS3Only: false
-              isPublicFacing: false
-              instanceSize: Large
-              numOfInstances: '2'
-              volumeType: io2
-              volumeSize: '100'
-              isAutoScaling: true
-              isStaticIp: false
-              loadbalancer: ALB
-              isFsx: false
-              isEfs: false
-              isElasticacheRedis: false
-            - repositoryName: app-tier-repo-5
-              os: Linux
-              bitbucketProjectKey: QNA
-              isNotForPromotion: false
-              isBifrost: true
-              isServerlessPattern: true
-              isS3Only: false
-              isPublicFacing: false
-              instanceSize: Medium
-              numOfInstances: '1'
-              volumeType: gp3
-              volumeSize: '40'
-              isAutoScaling: false
-              isStaticIp: false
-              loadbalancer: None
-              isFsx: false
-              isEfs: false
-              isElasticacheRedis: false
-            - repositoryName: app-tier-repo-6
-              os: Linux
-              bitbucketProjectKey: QNA
-              isNotForPromotion: false
-              isBifrost: true
-              isServerlessPattern: false
-              isS3Only: true
-              isPublicFacing: false
-              instanceSize: Small
-              numOfInstances: '1'
-              volumeType: gp3
-              volumeSize: '40'
-              isAutoScaling: false
-              isStaticIp: false
-              loadbalancer: None
-              isFsx: false
-              isEfs: false
-              isElasticacheRedis: false
-            - repositoryName: app-tier-repo-7
-              os: Linux
-              bitbucketProjectKey: QNA
-              isNotForPromotion: false
-              isBifrost: true
-              isServerlessPattern: false
-              isS3Only: false
-              isPublicFacing: false
-              instanceSize: Medium
-              numOfInstances: '3'
-              volumeType: gp3
-              volumeSize: '60'
-              isAutoScaling: true
-              isStaticIp: false
-              loadbalancer: ALB
-              isFsx: true
-              isEfs: false
-              isElasticacheRedis: false
-            - repositoryName: app-tier-repo-8
-              os: Linux
-              bitbucketProjectKey: QNA
-              isNotForPromotion: false
-              isBifrost: true
-              isServerlessPattern: false
-              isS3Only: false
-              isPublicFacing: false
-              instanceSize: Medium
-              numOfInstances: '2'
-              volumeType: gp3
-              volumeSize: '40'
-              isAutoScaling: false
-              isStaticIp: true
-              loadbalancer: ALB
-              isFsx: false
-              isEfs: false
-              isElasticacheRedis: true
-            - repositoryName: app-tier-repo-9
-              os: Windows
-              bitbucketProjectKey: QNA
-              isNotForPromotion: false
-              isBifrost: true
-              isServerlessPattern: false
-              isS3Only: false
-              isPublicFacing: false
-              instanceSize: Large
-              numOfInstances: '2'
-              volumeType: io2
-              volumeSize: '80'
-              isAutoScaling: true
-              isStaticIp: false
-              loadbalancer: NLB
-              isFsx: false
-              isEfs: false
-              isElasticacheRedis: false
-            - repositoryName: app-tier-repo-10
-              os: Linux
-              bitbucketProjectKey: QNA
-              isNotForPromotion: false
-              isBifrost: true
-              isServerlessPattern: false
-              isS3Only: false
-              isPublicFacing: false
-              instanceSize: Medium
-              numOfInstances: '2'
-              volumeType: gp3
-              volumeSize: '40'
-              isAutoScaling: true
-              isStaticIp: false
-              loadbalancer: ALB
-              isFsx: false
-              isEfs: true
-              isElasticacheRedis: false
-            - repositoryName: app-tier-repo-11
-              os: Linux
-              bitbucketProjectKey: QNA
-              isNotForPromotion: true
-              isBifrost: true
-              isServerlessPattern: false
-              isS3Only: false
-              isPublicFacing: false
-              instanceSize: Small
-              numOfInstances: '1'
-              volumeType: gp3
-              volumeSize: '40'
-              isAutoScaling: false
-              isStaticIp: false
-              loadbalancer: None
-              isFsx: false
-              isEfs: false
-              isElasticacheRedis: false
-            - repositoryName: app-tier-repo-12
-              os: Linux
-              bitbucketProjectKey: QNA
-              isNotForPromotion: false
-              isBifrost: false
-              isServerlessPattern: false
-              isS3Only: false
-              isPublicFacing: false
-              instanceSize: Medium
-              numOfInstances: '2'
-              volumeType: gp3
-              volumeSize: '40'
-              isAutoScaling: false
-              isStaticIp: false
-              loadbalancer: ALB
-              isFsx: false
-              isEfs: false
-              isElasticacheRedis: false
-            - repositoryName: app-tier-repo-13
-              os: Linux
-              bitbucketProjectKey: QNA
-              isNotForPromotion: false
-              isBifrost: true
-              isServerlessPattern: false
-              isS3Only: false
-              isPublicFacing: false
-              instanceSize: Large
-              numOfInstances: '6'
-              volumeType: gp3
-              volumeSize: '120'
-              isAutoScaling: true
-              isStaticIp: false
-              loadbalancer: ALB
-              isFsx: false
-              isEfs: false
-              isElasticacheRedis: true
-            - repositoryName: app-tier-repo-14
-              os: Windows
-              bitbucketProjectKey: QNA
-              isNotForPromotion: false
-              isBifrost: true
-              isServerlessPattern: false
-              isS3Only: false
-              isPublicFacing: false
-              instanceSize: Medium
-              numOfInstances: '2'
-              volumeType: io2
-              volumeSize: '60'
-              isAutoScaling: false
-              isStaticIp: true
-              loadbalancer: NLB
-              isFsx: false
-              isEfs: false
-              isElasticacheRedis: false
-            - repositoryName: app-tier-repo-15
-              os: Linux
-              bitbucketProjectKey: QNA
-              isNotForPromotion: false
-              isBifrost: true
-              isServerlessPattern: true
-              isS3Only: false
-              isPublicFacing: false
-              instanceSize: Small
-              numOfInstances: '1'
-              volumeType: gp3
-              volumeSize: '40'
-              isAutoScaling: false
-              isStaticIp: false
-              loadbalancer: None
-              isFsx: false
-              isEfs: false
-              isElasticacheRedis: false
-            - repositoryName: app-tier-repo-16
-              os: Linux
-              bitbucketProjectKey: QNA
-              isNotForPromotion: false
-              isBifrost: true
-              isServerlessPattern: false
-              isS3Only: false
-              isPublicFacing: false
-              instanceSize: Medium
-              numOfInstances: '3'
-              volumeType: gp3
-              volumeSize: '40'
-              isAutoScaling: true
-              isStaticIp: false
-              loadbalancer: ALB
-              isFsx: true
-              isEfs: true
-              isElasticacheRedis: false
-            - repositoryName: app-tier-repo-17
-              os: Linux
-              bitbucketProjectKey: QNA
-              isNotForPromotion: false
-              isBifrost: true
-              isServerlessPattern: false
-              isS3Only: false
-              isPublicFacing: false
-              instanceSize: Large
-              numOfInstances: '4'
-              volumeType: gp3
-              volumeSize: '80'
-              isAutoScaling: true
-              isStaticIp: false
-              loadbalancer: ALB
-              isFsx: false
-              isEfs: false
-              isElasticacheRedis: true
-            - repositoryName: app-tier-repo-18
-              os: Windows
-              bitbucketProjectKey: QNA
-              isNotForPromotion: false
-              isBifrost: true
-              isServerlessPattern: false
-              isS3Only: false
-              isPublicFacing: false
-              instanceSize: Medium
-              numOfInstances: '2'
-              volumeType: io2
-              volumeSize: '60'
-              isAutoScaling: false
-              isStaticIp: false
-              loadbalancer: NLB
-              isFsx: false
-              isEfs: false
-              isElasticacheRedis: false
-          ui:options:
-            addable: true
-            removable: true
-            orderable: true
+          description: 'Select the app tier repositories to promote. Add one entry per app tier.'
           items:
-            type: object
-            required:
-              - repositoryName
-              - os
-            properties:
-
-              repositoryName:
-                title: 'Bifrost Bitbucket repository name *'
-                type: string
-                ui:placeholder: 'Repository Name'
-
-              os:
-                title: 'Windows or Linux? *'
-                type: string
-                enum:
-                  - Linux
-                  - Windows
-                ui:widget: select
-
-              bitbucketProjectKey:
-                title: 'Bitbucket project key (per tier)'
-                type: string
-                ui:placeholder: 'e.g. QNA'
-
-              isNotForPromotion:
-                title: 'Skip promotion for this tier?'
-                description: 'Toggle ON to exclude this tier from promotion'
-                type: boolean
-                default: false
-
-              isBifrost:
-                title: 'Onboard via Bifrost?'
-                type: boolean
-                default: true
-
-              isServerlessPattern:
-                title: 'Lambda pattern only?'
-                type: boolean
-                default: false
-
-              isS3Only:
-                title: 'S3 only?'
-                type: boolean
-                default: false
-
-              isPublicFacing:
-                title: 'Will this app tier be public facing?'
-                type: boolean
-                default: false
-
-              instanceSize:
-                title: 'Instance size'
-                type: string
-                default: Medium
-                enum:
-                  - Small
-                  - Medium
-                  - Large
-                ui:widget: select
-
-              numOfInstances:
-                title: 'Number of instances'
-                type: string
-                default: '1'
-                ui:placeholder: 'e.g. 1'
-
-              volumeType:
-                title: 'Volume type'
-                type: string
-                default: gp3
-                enum:
-                  - gp3
-                  - io2
-                ui:widget: select
-
-              volumeSize:
-                title: 'Volume size (GB)'
-                type: string
-                default: '40'
-                ui:placeholder: 'e.g. 40'
-
-              isAutoScaling:
-                title: 'Autoscaling?'
-                type: boolean
-                default: false
-
-              isStaticIp:
-                title: 'Static IP?'
-                type: boolean
-                default: false
-
-              loadbalancer:
-                title: 'Load balancer type'
-                type: string
-                default: None
-                enum:
-                  - None
-                  - ALB
-                  - NLB
-                ui:widget: select
-
-              isFsx:
-                title: 'Require FSX?'
-                type: boolean
-                default: false
-
-              isEfs:
-                title: 'Require EFS?'
-                type: boolean
-                default: false
-
-              isElasticacheRedis:
-                title: 'Require ElastiCache Redis?'
-                type: boolean
-                default: false
+            type: string
+            ui:field: SelectFieldFromApi
+            ui:options:
+              path: proxy/hoover-service/mock-api/jarvis/promotion/apptier-options
+              valueSelector: value
+              labelSelector: label
+              placeholder: 'Select app tier repository...'
 
         isDbTier:
           title: 'Do you have a Database tier?'
